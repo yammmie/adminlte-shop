@@ -5,6 +5,11 @@ bootstrap adminlte을 사용해서 간단한 쇼핑몰 제작
 
 <br>
 
+## 사용 언어
+- Spring, java, Bootstrap, Mybatis, Oracle, JSP, CSS, JS, jQuery, Ajax
+
+<br>
+
 ## 기능
 - 장바구니 등 몇 가지 기능은 Interceptor를 사용하여 로그인 유무 확인 후 페이지 이동
 - 수정 버튼은 새로고침을, 수정2 버튼은 Ajax를 이용하여 구현
