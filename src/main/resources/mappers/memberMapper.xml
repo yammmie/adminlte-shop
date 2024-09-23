@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shopping.mapper.MemberMapper">
+	
+	<!-- id 중복 체크 -->
+	<select id="idCheck" parameterType="string" resultType="string">
+		select member_name from member_tbl
+		where member_id=#{member_id}
+	</select>
+	
+	<!-- 회원 가입 -->
+	<insert id="insert" parameterType="MemberVO">
+		insert into member_tbl(member_id, member_pw, member_name, member_email, 
+		member_zipcode, member_addr, member_detailaddr, member_tel) 
+		values(#{member_id}, #{member_pw}, #{member_name}, #{member_email}, 
+		#{member_zipcode}, #{member_addr}, #{member_detailaddr}, #{member_tel})
+	</insert>
+	
+	<!-- 로그인 or 모든 정보 가져오기 -->
+	<select id="select" parameterType="LoginDTO" resultType="MemberVO">
+		select member_id, member_pw, member_name, member_email, member_zipcode, 
+		member_addr, member_detailaddr, member_tel, member_regdate, member_updatedate
+		from member_tbl
+		where member_id=#{member_id} and member_pw=#{member_pw}
+	</select>
+	
+	<!-- 회원 정보 수정 -->
+	<update id="update" parameterType="MemberVO">
+		update member_tbl
+		
+		<set>
+			<if test='member_name != null and !member_name.equals("")'>member_name=#{member_name},</if>
+			<if test='member_pw != null and !member_pw.equals("")'>member_pw=#{member_pw},</if>
+			<if test='member_email != null and !member_email.equals("")'>member_email=#{member_email},</if>
+			<if test='member_addr != null and !member_addr.equals("")'>member_addr=#{member_addr},</if>
+			<if test='member_detailaddr != null and !member_detailaddr.equals("")'>member_detailaddr=#{member_detailaddr},</if>
+			<if test='member_zipcode != null and !member_zipcode.equals("")'>member_zipcode=#{member_zipcode}</if>
+		</set>
+		
+		where member_id=#{member_id}
+	</update>
+	
+	<!-- 회원탈퇴 -->
+	<delete id="delete" parameterType="string">
+		delete from member_tbl
+		where member_id=#{member_id}
+	</delete>
+	
+</mapper>

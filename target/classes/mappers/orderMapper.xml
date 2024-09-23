@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shopping.mapper.OrderMapper">
+
+	<!-- 
+		<insert id="" parameterType="">
+			insert into 주문테이블(컬럼1, 컬럼2...) values(시퀀스.nextval, 값)
+			
+			앞에서 사용했던 시퀀스를 읽어옴 (order="AFTER" : 위에 구문을 수행한 후)
+			<selectKey keyProperty="속성" resultType="Integer" order="AFTER"> 
+				select 시퀀스.currval from dual
+			</selectKey> 
+		</insert>
+		
+		keyProperty="속성"과 parameterType(vo)에 존재하는 주문번호 변수명이 일치해야 함
+		
+		<selectKey>가 <insert> 밖에 있으면 두개의 세션이 생김 (트랜잭션 X)
+		
+		일반적인 경우
+			insert : void
+		시퀀스 값을 리턴하는 경우
+			insert : int
+	 -->
+	 
+	 <insert id="insertOrder" parameterType="OrderVO">
+	 	insert into order_tbl(ord_code, member_id, ord_name, ord_zipcode, 
+	 	ord_addr, ord_detailaddr, ord_tel, ord_price)
+	 	values(seq_ord_code.nextval, #{member_id}, #{ord_name}, #{ord_zipcode}, 
+	 	#{ord_addr}, #{ord_detailaddr}, #{ord_tel}, #{ord_price})
+	 	
+	 	<selectKey keyProperty="ord_code" resultType="Integer" order="AFTER">
+	 		select seq_ord_code.currval from dual
+	 	</selectKey> 
+	 </insert>
+	 
+	 <insert id="insertOrdDetail" parameterType="map">
+	 	insert into orddetail_tbl(ord_code, pro_code, ordtl_amount, ordtl_price) 
+	 	select #{ord_code}, p.pro_code, cart_amount, cart_amount*pro_price 
+	 	from cart_tbl c, product_tbl p
+	 	where c.pro_code=p.pro_code and member_id=#{member_id}
+	 </insert>
+	 
+	 <!-- 모든 주문 조회 -->
+	 <select id="selectAll" resultType="OrderListVO">
+	 	select o.ord_code, pro_img, pro_name, ordtl_amount, ordtl_price, to_char(ord_regdate, 'YYYY-MM-DD HH24:MI:SS') as ord_regdate
+		from order_tbl o inner join orddetail_tbl de on o.ord_code = de.ord_code
+		inner join product_tbl p on de.pro_code=p.pro_code
+		where member_id=#{member_id}
+		order by o.ord_code desc
+	 </select>
+
+</mapper>

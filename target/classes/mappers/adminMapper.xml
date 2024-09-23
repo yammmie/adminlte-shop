@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shopping.mapper.AdminMapper">
+	
+	<select id="loginCheck" resultType="string">
+		select adm_name from admin_tbl
+		where adm_userid = #{userid} and adm_passwd = #{passwd}
+	</select>
+	 
+	 <!-- 모든 주문 조회 -->
+	 <select id="selectAll" resultType="OrderListVO">
+	 	select o.ord_code, pro_img, pro_name, ordtl_amount, ordtl_price, to_char(ord_regdate, 'YYYY-MM-DD HH24:MI:SS') as ord_regdate
+		from order_tbl o inner join orddetail_tbl de on o.ord_code = de.ord_code
+		inner join product_tbl p on de.pro_code=p.pro_code
+		order by o.ord_code desc
+	 </select>
+	
+	<delete id="deleteOrder">
+		delete from order_tbl 
+		where ord_code in 
+		<foreach collection="list" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteOrdDetail">
+		delete from orddetail_tbl 
+		where ord_code in
+		<foreach collection="list" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	
+	<!-- 서치 조건문 -->
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 'code'.toString()"> <!-- 상품코드 -->
+				where pro_code like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'name'.toString()"> <!-- 상품명 -->
+				where pro_name like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'content'.toString()"> <!-- 내용 -->
+				where pro_content like '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'company'.toString()"> <!-- 제조사 -->
+				where pro_company like '%' || #{keyword} || '%'
+			</if>
+			<!-- <if test="searchType == 'tw'.toString()">	 제목or작성자
+				where (TITLE like '%' || #{keyword} || '%') OR (WRITER like '%' ||
+				#{keyword} || '%')
+			</if> -->
+		</if>
+	</sql>
+
+	<!-- 목록 검색기능 -->
+	<select id="productListAll" parameterType="SearchCriteria" resultType="ProductVO">
+		select pro_code, cate_code, pro_name, pro_price, pro_discount, pro_company, pro_content, 
+		pro_img, pro_amount, pro_buy, pro_date, pro_updatedate 
+		from (
+			select pro_code, cate_code, cate_prtcode, pro_name, pro_price, pro_discount, pro_company, 
+			pro_content, pro_img, pro_amount, pro_buy, pro_date, pro_updatedate,
+			row_number() over(order by pro_code desc) p_seq from product_tbl
+			<include refid="search" />
+		) ds
+		where p_seq between #{rowStart} and #{rowEnd}
+	</select> <!-- DS : 별칭 (AS 생략) -->
+	<!-- rowStart, rowEnd : SearchCriteria의 멤버변수 (SearchCriteria가 Criteria를 상속받았기 때문 -->
+
+	<!-- 목록 검색 카운트 기능 -->
+	<select id="productListCount" parameterType="SearchCriteria" resultType="int">
+		<![CDATA[  
+			select count(pro_code) from product_tbl 
+		]]>
+		<include refid="search" />
+	</select>
+	
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shopping.mapper.CartMapper">
+
+	<select id="selectAll" parameterType="string" resultType="CartListVO">
+		select p.pro_code, cart_code, pro_name, pro_price, pro_img, cart_amount, member_id
+		from product_tbl p, cart_tbl c
+		where p.pro_code=c.pro_code and member_id=#{member_id}
+		order by cart_code desc
+	</select>
+
+	<!-- <insert id="insert" parameterType="CartVO">
+		insert into cart_tbl (cart_code, pro_code, member_id, cart_amount) 
+		values (seq_cart_code.nextval, #{pro_code}, #{member_id}, #{cart_amount})
+	</insert> -->
+	
+	<!-- MERGE문 사용 -->
+	<!-- 이미 장바구니에 있는 상품이면 수량만 증가 (id, pro_code로 구분) -->
+	<insert id="insert" parameterType="CartVO">
+		merge into cart_tbl c 
+		using dual 
+			on (c.member_id=#{member_id} and c.pro_code=#{pro_code})
+			
+			when matched then
+				update set cart_amount=cart_amount+#{cart_amount}
+			when not matched then
+				insert (cart_code, pro_code, member_id, cart_amount) 
+				values (seq_cart_code.nextval, #{pro_code}, #{member_id}, #{cart_amount})
+	</insert>
+	
+	<update id="update" parameterType="int">
+		update cart_tbl set cart_amount=#{cart_amount}
+		where cart_code=#{cart_code}
+	</update>
+	
+	<delete id="delete" parameterType="int">
+		delete from cart_tbl 
+		where cart_code=#{cart_code}
+	</delete>
+	
+	<delete id="deleteAll">
+		delete from cart_tbl
+	</delete>
+	
+</mapper>
